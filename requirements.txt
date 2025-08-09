@@ -1,0 +1,7 @@
+bitsandbytes
+transformers
+peft
+fastapi
+pydantic
+uvicorn
+protobuf
