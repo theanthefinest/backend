@@ -59,27 +59,60 @@ app = FastAPI()
 class RequestBody(BaseModel):
     prompt: str
     max_new_tokens: Optional[int] = 512
-    temperature: Optional[float] = 0.7
+    temperature: Optional[float] = 0.3
     top_p: Optional[float] = 0.9
 
 model_device = next(model.parameters()).device
+
 @app.post("/chat")
 async def chat(req: RequestBody):
     log.info(f"Received prompt: {req.prompt[:50]}...")
-    inputs = tokenizer(req.prompt, return_tensors="pt", padding=True, truncation=True).to(model_device)
+
+    messages = [
+        {"role": "user", "content": req.prompt}
+    ]
+
+    prompt = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True
+    )
+
+    inputs = tokenizer(
+        prompt,
+        return_tensors="pt",
+        padding=True,
+        truncation=True
+    ).to(model_device)
 
     with torch.no_grad():
         outputs = model.generate(
-            **inputs,
-            max_new_tokens=req.max_new_tokens,
-            temperature=req.temperature,
+            input_ids=inputs["input_ids"],
+            attention_mask=inputs["attention_mask"], 
+            max_new_tokens=min(req.max_new_tokens, 128),  
+            temperature=max(0.1, req.temperature),
             top_p=req.top_p,
-            pad_token_id=tokenizer.eos_token_id
+            pad_token_id=tokenizer.eos_token_id,
+            eos_token_id=tokenizer.eos_token_id,
+            do_sample=True
         )
 
-    response = tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
-    log.info(f"Generated response: {response[:50]}...")
-    return {'response': response}
+    full_response = tokenizer.decode(outputs[0], skip_special_tokens=False)
+
+    if "[/INST]" in full_response:
+        assistant_response = full_response.split("[/INST]")[1].strip()
+    elif "### Response:" in full_response:
+        assistant_response = full_response.split("### Response:")[1].strip()
+    else:
+        decoded_input = tokenizer.decode(inputs["input_ids"][0], skip_special_tokens=False)
+        assistant_response = full_response[len(decoded_input):].strip()
+    # if '.' in assistant_response:
+    #     assistant_response = assistant_response.split('.')[0].strip() + '.'
+    # else:
+    #     assistant_response = assistant_response.split('\n')[0].strip() 
+
+    log.info(f"Generated response: {assistant_response[:50]}...")
+    return {'response': assistant_response}
 
 @app.get("/health")
 async def health_check():
