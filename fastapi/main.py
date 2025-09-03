@@ -1,3 +1,5 @@
+# ======= FastAPI ========>
+
 from fastapi import FastAPI, Request, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
@@ -11,19 +13,20 @@ from huggingface_hub import hf_hub_download, login
 import os 
 import gc
 
+# ====== Enable Torch CUDA ======>
+
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 torch.cuda.set_per_process_memory_fraction(0.85)
 torch.cuda.empty_cache()
 gc.collect()
 
+# ====== Load the Configuration ======>
 config = configparser.ConfigParser()
 config.read('configuration.ini')
 
 logging.basicConfig(level=logging.INFO)
-
 log = logging.getLogger(__name__)
-
 log.info("Load the model: ...")
 
 token = config.get('token', 'token_key')
