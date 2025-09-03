@@ -33,7 +33,7 @@ token = config.get('token', 'token_key')
 login(token)
 
 BASE_MODEL = config.get('Model', 'base_model')
-ADAPTER_MODEL = "/home/chhaythean-ly/backend/Driver/checkpoint-750"
+ADAPTER_MODEL = "/media/chhay-thean/Drive D/CamTour-Ai/backend/fastapi/driver/chatbot_v0.3"
 
 log.info(" Tokenizer loading ... ")
 
@@ -121,10 +121,10 @@ async def chat(req: RequestBody):
 async def health_check():
     return {"status": "ok"}
 
-@app.on_event("startup")
-async def warmup_model():
-    log.info("Warming up model...")
-    inputs = tokenizer("Hello", return_tensors="pt").to(device)
-    with torch.no_grad():
-        _ = model.generate(**inputs, max_new_tokens=5)
-    log.info("Model warm-up done.")
+# @app.on_event("startup")
+# async def warmup_model():
+#     log.info("Warming up model...")
+#     inputs = tokenizer("Hello", return_tensors="pt").to(device)
+#     with torch.no_grad():
+#         _ = model.generate(**inputs, max_new_tokens=5)
+#     log.info("Model warm-up done.")

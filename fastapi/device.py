@@ -13,3 +13,6 @@ def get_device():
         device = "cpu"
 
     print(f"Using device: {device}")
+
+if __name__ == "__main__":
+    get_device()
