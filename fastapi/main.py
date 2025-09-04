@@ -25,9 +25,12 @@ gc.collect()
 config = configparser.ConfigParser()
 config.read('configuration.ini')
 
-logging.basicConfig(level=logging.INFO)
-log = logging.getLogger(__name__)
-log.info("Load the model: ...")
+# ====== Load Info with Color ========>
+GREEN = "\x1b[32m"
+YELLOW = "\x1b[33m"
+RED = "\x1b[31m"
+RESET = "\x1b[0m"
+# ====== End ========>
 
 token = config.get('token', 'token_key')
 login(token)
@@ -35,15 +38,15 @@ login(token)
 BASE_MODEL = config.get('Model', 'base_model')
 ADAPTER_MODEL = "/media/chhay-thean/Drive D/CamTour-Ai/backend/fastapi/driver/chatbot_v0.3"
 
-log.info(" Tokenizer loading ... ")
+print(f"{GREEN}INFO{RESET}:     Loading The Tokenizer...")
 
 tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
 tokenizer.pad_token = tokenizer.eos_token
 
-log.info("Success...!")
+print(f"{GREEN}INFO{RESET}:     Tokenizer Loaded Successfully.")
 
-log.info("load the model....")
 
+print(f"{GREEN}INFO{RESET}:     Loading The Model...")
 quant_config = BitsAndBytesConfig(load_in_4bit=True, llm_int8_enable_fp32_cpu_offload=True)
 
 model = AutoModelForCausalLM.from_pretrained(
@@ -55,7 +58,7 @@ model = AutoModelForCausalLM.from_pretrained(
 model = PeftModel.from_pretrained(model, ADAPTER_MODEL)
 model.eval()
 
-log.info("Model loaded and ready for inference.")
+print(f"{GREEN}INFO{RESET}:     Model Loaded Successfully.")
 
 app = FastAPI()
 
