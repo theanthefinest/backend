@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class Tourism(LLM):
-    api_url: str = "http://localhost:8000/chat"  
+    api_url: str = "http://127.0.0.1:8000/chat"  
     max_new_tokens: int = 1024
     temperature: float = 0.7
     top_p: float = 0.9
