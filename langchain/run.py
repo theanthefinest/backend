@@ -1,10 +1,12 @@
-from langchain_router import Router
+
+# ---------------- LangChain Conversation Setup ----------------
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory
+from langchain_router import Router
+from pydantic import BaseModel, Field
 
 smart_llm = Router()
-
 memory = ConversationBufferMemory(input_key="input", memory_key="history")
 
 prompt_template = PromptTemplate(
@@ -14,17 +16,18 @@ Previous conversation:
 {history}
 
 Human: {input}
-Assistant:"""
+Assistant:""",
 )
 
 conversation_chain = LLMChain(
     llm=smart_llm,
     prompt=prompt_template,
     memory=memory,
-    verbose=True
+    verbose=True,
 )
 
 
+# ---------------- Testing ----------------
 def test_router():
     print("🧪 Testing Smart Router LLM\n")
     print("=" * 80)
@@ -42,13 +45,13 @@ def test_router():
         "What is the theory of relativity?",
         "Recommend some traditional Cambodian dishes to try",
         "How do I apply for a visa to visit Cambodia?",
-        "What are the main programming languages for web development?"
+        "What are the main programming languages for web development?",
     ]
 
     for i, query in enumerate(test_queries, 1):
         print(f"\n{i}. 🧑‍💻 Query: {query}")
         try:
-            response = smart_llm(query)  
+            response = smart_llm(query)
             print(f"   🤖 Response: {response[:200]}...")
         except Exception as e:
             print(f"   ❌ Error: {e}")
@@ -64,7 +67,7 @@ def test_conversation():
         "What are the must-see temples in Angkor?",
         "Also, what's the best Cambodian food I should try?",
         "By the way, what's the weather like in December?",
-        "Can you also explain how blockchain technology works?" 
+        "Can you also explain how blockchain technology works?",
     ]
 
     for message in conversation_messages:

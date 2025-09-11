@@ -1,19 +1,23 @@
 from langchain.llms.base import LLM
-from typing import Any, List
+from typing import Any
 import requests
 import os
 import logging
-import google.generativeai as genai  
+import google.generativeai as genai
 from dotenv import load_dotenv
+from typing import Optional
+from pydantic import Field
 
 load_dotenv()
 
+# ---------------- Logging ----------------
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# ---------------- Cambodia Tourism Model ----------------
 class Tourism(LLM):
-    api_url: str = "http://127.0.0.1:8000/chat"  
-    max_new_tokens: int = 1024
+    api_url: str = "http://127.0.0.1:8000/chat"
+    max_tokens: int = 1024
     temperature: float = 0.7
     top_p: float = 0.9
     timeout: int = 200
@@ -25,17 +29,18 @@ class Tourism(LLM):
     def _call(self, prompt: str, **kwargs: Any) -> str:
         payload = {
             "prompt": prompt,
-            "max_tokens": kwargs.get("max_new_tokens", self.max_new_tokens),
+            "max_tokens": kwargs.get("max_tokens", self.max_tokens),
             "temperature": kwargs.get("temperature", self.temperature),
-            "top_p": kwargs.get("top_p", self.top_p)
+            "top_p": kwargs.get("top_p", self.top_p),
         }
 
         try:
-            logger.info(f"Calling Cambodia Chatbot with prompt: {prompt[:50]}...")
+            logger.info(f"Calling Cambodia Chatbot with prompt: {prompt[:60]}...")
             response = requests.post(self.api_url, json=payload, timeout=self.timeout)
             response.raise_for_status()
-            result = response.json().get("response", "").strip()
-            logger.info(f"Cambodia Chatbot response: {result[:50]}...")
+            data = response.json()
+            result = data.get("response", "").strip()
+            logger.info(f"Cambodia Chatbot response: {result[:60]}...")
             return result
         except requests.exceptions.RequestException as e:
             logger.error(f"Error calling Cambodia Chatbot: {e}")
@@ -43,12 +48,14 @@ class Tourism(LLM):
 
     @property
     def _identifying_params(self) -> dict:
-        return {
-            "api_url": self.api_url,
-            "model": "cambodia-custom"
-        }
+        return {"api_url": self.api_url, "model": "cambodia-custom"}
 
+
+# ---------------- Gemini Model ----------------
 class Gemini(LLM):
+    api_key: Optional[str] = None
+    model_name: str = "gemini-pro"
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.api_key = os.getenv("GEMINI_API_KEY")
@@ -56,7 +63,6 @@ class Gemini(LLM):
             raise ValueError("GEMINI_API_KEY environment variable is required")
 
         genai.configure(api_key=self.api_key)
-        self.model_name = "gemini-pro"
 
     @property
     def _llm_type(self) -> str:
@@ -64,18 +70,18 @@ class Gemini(LLM):
 
     def _call(self, prompt: str, **kwargs: Any) -> str:
         try:
-            logger.info(f"Calling Gemini with prompt: {prompt[:50]}...")
+            logger.info(f"Calling Gemini with prompt: {prompt[:60]}...")
             model = genai.GenerativeModel(self.model_name)
             response = model.generate_content(
-                contents=prompt,
+                prompt,
                 generation_config={
                     "temperature": kwargs.get("temperature", 0.7),
                     "max_output_tokens": kwargs.get("max_tokens", 1024),
                     "top_p": kwargs.get("top_p", 0.9),
-                }
+                },
             )
             result = response.text.strip()
-            logger.info(f"Gemini response: {result[:50]}...")
+            logger.info(f"Gemini response: {result[:60]}...")
             return result
         except Exception as e:
             logger.error(f"Error calling Gemini: {e}")
@@ -86,14 +92,18 @@ class Gemini(LLM):
         return {"model": self.model_name}
 
 
+# ---------------- Router Model ----------------
 class Router(LLM):
+    tourism: Tourism = Field(default_factory=Tourism)
+    gemini: Optional[Gemini] = None
+    use_gemini: bool = False
+    cambodia_keywords: list = Field(default_factory=list)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.tourism = Tourism()
-
         self.use_gemini = False
         self.gemini = None
-
         try:
             self.gemini = Gemini()
             self.use_gemini = True
@@ -101,6 +111,7 @@ class Router(LLM):
         except ValueError as e:
             logger.warning(f"Gemini API key not found: {e}. Using Cambodia model for all queries.")
 
+        # Now you can safely assign to cambodia_keywords
         self.cambodia_keywords = [
             'cambodia', 'angkor wat', 'phnom penh', 'siem reap', 'khmer',
             'cambodian', 'tonle sap', 'killing fields', 'tuol sleng',
@@ -110,7 +121,7 @@ class Router(LLM):
             'cambodia temple', 'cambodia culture', 'cambodia history',
             'cambodia food', 'cambodian cuisine', 'apsara dance',
             'mondulkiri', 'rattanakiri', 'koh rong', 'koh rong samloem',
-            'history', 'cambodia history', 'visa to cambodia'
+            'visa to cambodia'
         ]
 
     @property
@@ -153,5 +164,5 @@ class Router(LLM):
     def _identifying_params(self) -> dict:
         return {
             "use_gemini": self.use_gemini,
-            "cambodia_keywords_count": len(self.cambodia_keywords)
+            "cambodia_keywords_count": len(self.cambodia_keywords),
         }
