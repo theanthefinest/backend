@@ -72,7 +72,7 @@ model_device = next(model.parameters()).device
 
 @app.post("/chat")
 async def chat(req: RequestBody):
-    log.info(f"Received prompt: {req.prompt[:50]}...")
+    print(f"{GREEN}INFO{RESET}:     Received prompt: {req.prompt[:50]}...")
 
     messages = [
         {"role": "user", "content": req.prompt}
@@ -117,7 +117,8 @@ async def chat(req: RequestBody):
     # else:
     #     assistant_response = assistant_response.split('\n')[0].strip() 
 
-    log.info(f"Generated response: {assistant_response[:50]}...")
+    assistant_response = assistant_response.replace("\n", " ").replace("  ", " ").strip()
+    print(f"{GREEN}INFO{RESET}:     Generated response: {assistant_response[:50]}...")
     return {'response': assistant_response}
 
 @app.get("/health")
