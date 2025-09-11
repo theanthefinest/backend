@@ -59,7 +59,7 @@ class Tourism(LLM):
 # ---------------- Gemini Model ----------------
 class Gemini(LLM):
     api_key: Optional[str] = None
-    model_name: str = "gemini-pro"
+    model_name: str = "gemini-2.0-flash"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
