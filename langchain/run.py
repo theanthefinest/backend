@@ -49,17 +49,17 @@ def test_router():
     ]
 
     for i, query in enumerate(test_queries, 1):
-        print(f"\n{i}. 🧑‍💻 Query: {query}")
+        print(f"\n{i}. Query: {query}")
         try:
             response = smart_llm(query)
-            print(f"   🤖 Response: {response[:200]}...")
+            print(f"   Response: {response[:200]}...")
         except Exception as e:
-            print(f"   ❌ Error: {e}")
+            print(f"   Error: {e}")
         print("-" * 80)
 
 
 def test_conversation():
-    print("\n💬 Testing Conversation with Memory\n")
+    print("\nTesting Conversation with Memory\n")
     print("=" * 80)
 
     conversation_messages = [
@@ -71,18 +71,17 @@ def test_conversation():
     ]
 
     for message in conversation_messages:
-        print(f"\n🧑‍💻 User: {message}")
+        print(f"\nUser: {message}")
         try:
             response = conversation_chain.run(input=message)
-            print(f"🤖 Assistant: {response[:200]}...")
+            print(f"Assistant: {response[:200]}...")
         except Exception as e:
-            print(f"❌ Error: {e}")
+            print(f"Error: {e}")
         print("-" * 80)
 
 
 if __name__ == "__main__":
-    print("🚀 Starting Smart Router LLM Tests")
-    print("⚠️  Make sure your FastAPI server is running on http://localhost:8000")
+    print("Starting Smart Router LLM Tests")
     print("=" * 80)
 
     test_router()

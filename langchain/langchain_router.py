@@ -14,6 +14,11 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+RED = "\033[91m"
+RESET = "\033[0m"
+
 # ---------------- Cambodia Tourism Model ----------------
 class Tourism(LLM):
     api_url: str = "http://127.0.0.1:8000/chat"
@@ -70,7 +75,7 @@ class Gemini(LLM):
 
     def _call(self, prompt: str, **kwargs: Any) -> str:
         try:
-            logger.info(f"Calling Gemini with prompt: {prompt[:60]}...")
+            logger.info(f"{GREEN}Calling Gemini with prompt{RESET}: {prompt[:60]}...")
             model = genai.GenerativeModel(self.model_name)
             response = model.generate_content(
                 prompt,
@@ -81,10 +86,10 @@ class Gemini(LLM):
                 },
             )
             result = response.text.strip()
-            logger.info(f"Gemini response: {result[:60]}...")
+            logger.info(f"{GREEN}Gemini response{RESET}: {result[:60]}...")
             return result
         except Exception as e:
-            logger.error(f"Error calling Gemini: {e}")
+            logger.error(f"{RED}Error calling Gemini{RESET}: {e}")
             raise Exception(f"Error calling Gemini: {e}")
 
     @property
@@ -107,11 +112,10 @@ class Router(LLM):
         try:
             self.gemini = Gemini()
             self.use_gemini = True
-            logger.info("Gemini model initialized successfully.")
+            logger.info(f"{GREEN}Gemini model initialized successfully.{RESET}")
         except ValueError as e:
-            logger.warning(f"Gemini API key not found: {e}. Using Cambodia model for all queries.")
+            logger.warning(f"{YELLOW}Gemini API key not found: {e}. Using Cambodia model for all queries.{RESET}")
 
-        # Now you can safely assign to cambodia_keywords
         self.cambodia_keywords = [
             'cambodia', 'angkor wat', 'phnom penh', 'siem reap', 'khmer',
             'cambodian', 'tonle sap', 'killing fields', 'tuol sleng',
