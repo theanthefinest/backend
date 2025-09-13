@@ -10,3 +10,11 @@ cache/
 
 *.driver/
 driver/
+
+*.node_modules/
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.*.local
